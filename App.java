@@ -1,11 +1,15 @@
-import java.util.ArrayList;
-import java.util.Scanner;
+import java.nio.file.*;
+import java.io.IOException;
+import java.util.*;
 
 public class App {
-    private static ArrayList<String> tasks = new ArrayList<>();
+    private static List<String> tasks = new ArrayList<>();
     private static Scanner scanner = new Scanner(System.in);
+    private static final String FILE_NAME = "tareas.txt";
 
     public static void main(String[] args) {
+        cargarTareas();
+
         while (true) {
             System.out.println("\n=== Mi Lista de Tareas ===");
             System.out.println("1. Ver tareas");
@@ -15,24 +19,39 @@ public class App {
             System.out.print("Elige una opción: ");
 
             int choice = scanner.nextInt();
-            scanner.nextLine(); // Consumir el salto de línea
+            scanner.nextLine();
 
             switch (choice) {
-                case 1:
-                    mostrarTareas();
-                    break;
-                case 2:
-                    agregarTarea();
-                    break;
-                case 3:
-                    eliminarTarea();
-                    break;
-                case 4:
+                case 1 -> mostrarTareas();
+                case 2 -> agregarTarea();
+                case 3 -> eliminarTarea();
+                case 4 -> {
                     System.out.println("¡Hasta luego!");
                     return;
-                default:
-                    System.out.println("Opción no válida.");
+                }
+                default -> System.out.println("Opción no válida.");
             }
+        }
+    }
+
+    private static void cargarTareas() {
+        try {
+            Path path = Paths.get(FILE_NAME);
+            if (Files.exists(path)) {
+                tasks = new ArrayList<>(Files.readAllLines(path));
+            } else {
+                Files.createFile(path); // si no existe, lo crea vacío
+            }
+        } catch (IOException e) {
+            System.out.println("Error al cargar las tareas: " + e.getMessage());
+        }
+    }
+
+    private static void guardarTareas() {
+        try {
+            Files.write(Paths.get(FILE_NAME), tasks);
+        } catch (IOException e) {
+            System.out.println("Error al guardar las tareas: " + e.getMessage());
         }
     }
 
@@ -51,6 +70,7 @@ public class App {
         System.out.print("Ingresa la nueva tarea: ");
         String tarea = scanner.nextLine();
         tasks.add(tarea);
+        guardarTareas();
         System.out.println("Tarea agregada exitosamente.");
     }
 
@@ -62,8 +82,10 @@ public class App {
         mostrarTareas();
         System.out.print("Ingresa el número de la tarea a eliminar: ");
         int index = scanner.nextInt();
+        scanner.nextLine();
         if (index > 0 && index <= tasks.size()) {
             tasks.remove(index - 1);
+            guardarTareas();
             System.out.println("Tarea eliminada exitosamente.");
         } else {
             System.out.println("Número de tarea inválido.");
